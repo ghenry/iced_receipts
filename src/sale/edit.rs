@@ -3,7 +3,6 @@ use iced::widget::{
     button, column, container, focus_next, focus_previous, horizontal_space,
     pick_list, row, scrollable, text, text_input,
 };
-use iced::Alignment::Center;
 use iced::{Alignment, Element, Fill};
 
 use super::{Action, Instruction, Sale, TaxGroup};
@@ -31,7 +30,7 @@ pub enum Field {
     TaxGroup(TaxGroup),
 }
 
-pub fn view(sale: &Sale) -> Element<Message> {
+pub fn view(sale: &Sale) -> Element<'_, Message> {
     let header = row![
         horizontal_space().width(40),
         text_input("Sale Name", &sale.name)
@@ -82,7 +81,7 @@ pub fn view(sale: &Sale) -> Element<Message> {
                             .id(form_id("quantity", item.id))
                             .align_x(Alignment::Center)
                             .on_input(|s| Message::UpdateItem(
-                                item.id.clone(),
+                                item.id,
                                 Field::Quantity(s)
                             ))
                             .on_submit(Message::SubmitItem(item.id))

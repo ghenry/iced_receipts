@@ -31,7 +31,7 @@ pub fn view(sales: &HashMap<usize, Sale>) -> Element<'_, Message> {
             sales_list = sales_list.push(
                 button(
                     row![column![
-                        text(format!("{}", sale.name)).size(13),
+                        text(sale.name.to_string()).size(13),
                         text(format!("Total: ${:.2}", total)).size(12).style(
                             |theme: &iced::Theme| text::Style {
                                 color: Some(

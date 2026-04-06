@@ -11,14 +11,16 @@ use crate::{Action, Hotkey};
 #[derive(Debug, Clone)]
 pub enum Message {
     Back,
+    PrintPDF,
     StartEdit,
 }
 
-pub fn view(sale: &Sale) -> Element<Message> {
+pub fn view(sale: &Sale) -> Element<'_, Message> {
     let header = row![
         button(text("←").center()).width(40).on_press(Message::Back),
         text(&sale.name).size(16),
         horizontal_space(),
+        button("Print").on_press(Message::PrintPDF),
         button("Edit").on_press(Message::StartEdit)
     ]
     .spacing(10)

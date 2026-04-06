@@ -53,23 +53,12 @@ impl SaleItem {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Sale {
     pub items: Vec<SaleItem>,
     pub service_charge_percent: Option<f32>,
     pub gratuity_amount: Option<f32>,
     pub name: String,
-}
-
-impl Default for Sale {
-    fn default() -> Self {
-        Self {
-            items: Vec::new(),
-            service_charge_percent: None,
-            gratuity_amount: None,
-            name: String::new(),
-        }
-    }
 }
 
 impl Sale {
@@ -117,6 +106,7 @@ pub enum Message {
 pub enum Instruction {
     Back,
     Save,
+    PrintPDF,
     StartEdit,
     Cancel,
 }
@@ -128,6 +118,9 @@ pub fn update(
     match message {
         Message::Show(msg) => match msg {
             show::Message::Back => Action::instruction(Instruction::Back),
+            show::Message::PrintPDF => {
+                Action::instruction(Instruction::PrintPDF)
+            }
             show::Message::StartEdit => {
                 Action::instruction(Instruction::StartEdit)
                     .with_task(focus_next())
@@ -181,7 +174,7 @@ pub fn update(
                 // try to move to the next 'field' in this list. if all items
                 // are filled out, add a new item and move to it instead
                 if let Some(item) = sale.items.iter().find(|i| i.id == id) {
-                    return if item.name.is_empty() {
+                    if item.name.is_empty() {
                         Action::task(text_input::focus(edit::form_id(
                             "name", id,
                         )))
@@ -199,7 +192,7 @@ pub fn update(
                             "name",
                             id + 1,
                         )))
-                    };
+                    }
                 } else {
                     Action::none()
                 }
@@ -216,7 +209,7 @@ pub fn update(
     }
 }
 
-pub fn view(sale: &Sale, mode: Mode) -> Element<Message> {
+pub fn view(sale: &Sale, mode: Mode) -> Element<'_, Message> {
     match mode {
         Mode::View => show::view(sale).map(Message::Show),
         Mode::Edit => edit::view(sale).map(Message::Edit),

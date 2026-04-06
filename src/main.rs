@@ -160,7 +160,7 @@ impl App {
         Task::none()
     }
 
-    fn view(&self) -> Element<Message> {
+    fn view(&self) -> Element<'_, Message> {
         match &self.screen {
             Screen::List => list::view(&self.sales).map(Message::List),
             Screen::Sale(mode, id) => {
@@ -210,6 +210,7 @@ impl App {
                     self.screen =
                         Screen::Sale(sale::Mode::View, Some(final_id));
                 }
+                sale::Instruction::PrintPDF => self.screen = Screen::List,
                 sale::Instruction::StartEdit => {
                     if let Some(id) = sale_id {
                         // Start editing existing sale
