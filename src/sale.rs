@@ -1,8 +1,9 @@
 //! View and edit sales
 use iced::widget::{focus_next, text_input};
-use iced::Element;
+use iced::{Element, Task};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use crate::pdf::print_pdf;
 use crate::tax::TaxGroup;
 use crate::{Action, Hotkey};
 
@@ -100,13 +101,13 @@ impl Sale {
 pub enum Message {
     Show(show::Message),
     Edit(edit::Message),
+    PrintPdfComplete(Result<std::path::PathBuf, String>),
 }
 
 #[derive(Debug, Clone)]
 pub enum Instruction {
     Back,
     Save,
-    PrintPDF,
     StartEdit,
     Cancel,
 }
@@ -119,11 +120,48 @@ pub fn update(
         Message::Show(msg) => match msg {
             show::Message::Back => Action::instruction(Instruction::Back),
             show::Message::PrintPDF => {
-                Action::instruction(Instruction::PrintPDF)
+                let sale = sale.clone();
+                let sale_name = if !sale.name.is_empty() {
+                    sale.name.clone()
+                } else {
+                    "receipt".to_string()
+                };
+
+                Action::task(Task::perform(
+                    async move {
+                        let file_handle = rfd::AsyncFileDialog::new()
+                            .set_title("Save Receipt as PDF")
+                            .set_file_name(format!("{}.pdf", sale_name))
+                            .add_filter("PDF", &["pdf"])
+                            .save_file()
+                            .await;
+
+                        match file_handle {
+                            Some(handle) => {
+                                let path = handle.path().to_path_buf();
+                                print_pdf(&sale, &path)
+                                    .map(|()| path)
+                                    .map_err(|e| e.to_string())
+                            }
+                            None => Err("Cancelled".to_string()),
+                        }
+                    },
+                    Message::PrintPdfComplete,
+                ))
             }
             show::Message::StartEdit => {
                 Action::instruction(Instruction::StartEdit)
                     .with_task(focus_next())
+            }
+        },
+        Message::PrintPdfComplete(result) => match result {
+            Ok(path) => {
+                println!("PDF saved to: {:?}", path);
+                Action::none()
+            }
+            Err(e) => {
+                println!("Failed to save PDF: {}", e);
+                Action::none()
             }
         },
         Message::Edit(msg) => match msg {

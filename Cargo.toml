@@ -6,3 +6,7 @@ authors = ["Andy Terra <spam@andyterra.com>"]
 
 [dependencies]
 iced = { version = "0.13.1", features = ["advanced", "debug"] }
+anyhow = "1.0.102"
+rfd = "0.17.2"
+printpdf = "0.9.1"
+log = "0.4.25"

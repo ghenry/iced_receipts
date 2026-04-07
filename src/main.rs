@@ -8,6 +8,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 mod action;
 mod list;
+mod pdf;
 mod sale;
 mod tax;
 
@@ -210,7 +211,6 @@ impl App {
                     self.screen =
                         Screen::Sale(sale::Mode::View, Some(final_id));
                 }
-                sale::Instruction::PrintPDF => self.screen = Screen::List,
                 sale::Instruction::StartEdit => {
                     if let Some(id) = sale_id {
                         // Start editing existing sale
