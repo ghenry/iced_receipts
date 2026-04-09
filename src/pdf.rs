@@ -3,6 +3,7 @@
 use crate::sale::Sale;
 use anyhow::{Context, Result};
 use log::{debug, warn};
+use printpdf::PaintMode::{Fill, FillStroke};
 use printpdf::*;
 use std::path::Path;
 
@@ -14,9 +15,64 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
     let padding_right = 10.0;
     let header_y = 277.0;
     let font_height = 15.0;
-    
+
     let mut doc = PdfDocument::new("Iced Receipt");
     let ops = vec![
+        // A4 Portrait in Points is 595.0 wide (x) and 842.0 high (y)
+        // Draw the rectangle with our background colour
+        Op::SetFillColor {
+            col: Color::Rgb(Rgb {
+                r: 0.929,
+                g: 0.929,
+                b: 0.929,
+                icc_profile: None,
+            }),
+        },
+        Op::DrawPolygon {
+            polygon: Polygon {
+                rings: vec![PolygonRing {
+                    points: vec![
+                        LinePoint {
+                            p: Point {
+                                x: Pt(padding_right),
+                                y: Pt(812.0),
+                            },
+                            bezier: false,
+                        },
+                        LinePoint {
+                            p: Point {
+                                x: Pt(585.0),
+                                y: Pt(812.0),
+                            },
+                            bezier: false,
+                        },
+                        LinePoint {
+                            p: Point {
+                                x: Pt(585.0),
+                                y: Pt(190.0),
+                            },
+                            bezier: false,
+                        },
+                        LinePoint {
+                            p: Point {
+                                x: Pt(padding_right),
+                                y: Pt(190.0),
+                            },
+                            bezier: false,
+                        },
+                        LinePoint {
+                            p: Point {
+                                x: Pt(padding_right),
+                                y: Pt(812.0),
+                            },
+                            bezier: false,
+                        },
+                    ],
+                }],
+                mode: Fill,
+                winding_order: WindingOrder::NonZero,
+            },
+        },
         // Save the graphics state to allow for position resets later
         Op::SaveGraphicsState,
         // Start a text section (required for text operations)
@@ -24,7 +80,9 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         Op::SetTextCursor {
             pos: Point::new(Mm(padding_right), Mm(header_y)),
         },
-        Op::SetLineHeight { lh: Pt(font_height) },
+        Op::SetLineHeight {
+            lh: Pt(font_height),
+        },
         Op::SetFont {
             font: PdfFontHandle::Builtin(BuiltinFont::Helvetica),
             size: Pt(font_height),
@@ -41,7 +99,9 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         Op::SetTextCursor {
             pos: Point::new(Mm(100.0), Mm(header_y)),
         },
-        Op::SetLineHeight { lh: Pt(font_height) },
+        Op::SetLineHeight {
+            lh: Pt(font_height),
+        },
         Op::SetFont {
             font: PdfFontHandle::Builtin(BuiltinFont::Helvetica),
             size: Pt(font_height),
@@ -58,7 +118,9 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         Op::SetTextCursor {
             pos: Point::new(Mm(125.0), Mm(header_y)),
         },
-        Op::SetLineHeight { lh: Pt(font_height) },
+        Op::SetLineHeight {
+            lh: Pt(font_height),
+        },
         Op::SetFont {
             font: PdfFontHandle::Builtin(BuiltinFont::Helvetica),
             size: Pt(font_height),
@@ -75,7 +137,9 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         Op::SetTextCursor {
             pos: Point::new(Mm(180.0), Mm(header_y)),
         },
-        Op::SetLineHeight { lh: Pt(font_height) },
+        Op::SetLineHeight {
+            lh: Pt(font_height),
+        },
         Op::SetFont {
             font: PdfFontHandle::Builtin(BuiltinFont::Helvetica),
             size: Pt(font_height),
@@ -92,12 +156,69 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         Op::SetTextCursor {
             pos: Point::new(Mm(padding_right), Mm(50.0)),
         },
-        Op::SetLineHeight { lh: Pt(font_height) },
+        Op::SetLineHeight {
+            lh: Pt(font_height),
+        },
         Op::SetFont {
             font: PdfFontHandle::Builtin(BuiltinFont::Helvetica),
             size: Pt(font_height),
         },
-        // Set the text colour
+        // A4 Portrait in Points is 595.0 wide (x) and 842.0 high (y)
+        // Draw the rectangle with our background colour
+        Op::SetFillColor {
+            col: Color::Rgb(Rgb {
+                r: 0.929,
+                g: 0.929,
+                b: 0.929,
+                icc_profile: None,
+            }),
+        },
+        Op::DrawPolygon {
+            polygon: Polygon {
+                rings: vec![PolygonRing {
+                    points: vec![
+                        LinePoint {
+                            p: Point {
+                                x: Pt(padding_right),
+                                y: Pt(170.0),
+                            },
+                            bezier: false,
+                        },
+                        LinePoint {
+                            p: Point {
+                                x: Pt(585.0),
+                                y: Pt(170.0),
+                            },
+                            bezier: false,
+                        },
+                        LinePoint {
+                            p: Point {
+                                x: Pt(585.0),
+                                y: Pt(padding_right + 5.0),
+                            },
+                            bezier: false,
+                        },
+                        LinePoint {
+                            p: Point {
+                                x: Pt(padding_right),
+                                y: Pt(padding_right + 5.0),
+                            },
+                            bezier: false,
+                        },
+                        LinePoint {
+                            p: Point {
+                                x: Pt(padding_right),
+                                y: Pt(170.0),
+                            },
+                            bezier: false,
+                        },
+                    ],
+                }],
+                mode: Fill,
+                winding_order: WindingOrder::NonZero,
+            },
+        },
+        // Set the text colour and write over the top of the rectangle
         Op::SetFillColor {
             col: Color::Rgb(Rgb::new(0.0, 0.0, 0.0, None)),
         },
@@ -126,50 +247,6 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         },
         Op::EndTextSection,
         Op::RestoreGraphicsState,
-        // A4 Portrait in Points is 595.0 wide (x) and 842.0 high (y)
-        // A rectangle
-        Op::DrawLine {
-            line: Line {
-                points: vec![
-                    LinePoint {
-                        p: Point {
-                            x: Pt(padding_right),
-                            y: Pt(160.0),
-                        },
-                        bezier: false,
-                    },
-                    LinePoint {
-                        p: Point {
-                            x: Pt(585.0),
-                            y: Pt(160.0),
-                        },
-                        bezier: false,
-                    },
-                    LinePoint {
-                        p: Point {
-                            x: Pt(585.0),
-                            y: Pt(padding_right + 5.0),
-                        },
-                        bezier: false,
-                    },
-                    LinePoint {
-                        p: Point {
-                            x: Pt(padding_right),
-                            y: Pt(padding_right + 5.0),
-                        },
-                        bezier: false,
-                    },
-                    LinePoint {
-                        p: Point {
-                            x: Pt(padding_right),
-                            y: Pt(160.0),
-                        },
-                        bezier: false,
-                    },
-                ],
-                is_closed: false,
-            },
-        },
     ];
 
     let page = PdfPage::new(Mm(PAGE_W), Mm(PAGE_H), ops);
