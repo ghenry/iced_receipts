@@ -3,7 +3,7 @@
 use crate::sale::Sale;
 use anyhow::{Context, Result};
 use log::{debug, warn};
-use printpdf::PaintMode::{Fill, FillStroke};
+use printpdf::PaintMode::Fill;
 use printpdf::*;
 use std::path::Path;
 
@@ -15,6 +15,83 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
     let padding_right = 10.0;
     let header_y = 277.0;
     let font_height = 15.0;
+    let footer_height = 160.0;
+    let right_position = 585.0;
+    let top_rec = vec![
+        LinePoint {
+            p: Point {
+                x: Pt(padding_right),
+                y: Pt(812.0),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Pt(right_position),
+                y: Pt(812.0),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Pt(right_position),
+                y: Pt(190.0),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Pt(padding_right),
+                y: Pt(190.0),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Pt(padding_right),
+                y: Pt(812.0),
+            },
+            bezier: false,
+        },
+    ];
+
+    let bottom_rec = vec![
+        LinePoint {
+            p: Point {
+                x: Pt(padding_right),
+                y: Pt(footer_height),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Pt(right_position),
+                y: Pt(footer_height),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Pt(right_position),
+                y: Pt(padding_right + 5.0),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Pt(padding_right),
+                y: Pt(padding_right + 5.0),
+            },
+            bezier: false,
+        },
+        LinePoint {
+            p: Point {
+                x: Pt(padding_right),
+                y: Pt(footer_height),
+            },
+            bezier: false,
+        },
+    ];
 
     let mut doc = PdfDocument::new("Iced Receipt");
     let ops = vec![
@@ -30,47 +107,19 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         },
         Op::DrawPolygon {
             polygon: Polygon {
-                rings: vec![PolygonRing {
-                    points: vec![
-                        LinePoint {
-                            p: Point {
-                                x: Pt(padding_right),
-                                y: Pt(812.0),
-                            },
-                            bezier: false,
-                        },
-                        LinePoint {
-                            p: Point {
-                                x: Pt(585.0),
-                                y: Pt(812.0),
-                            },
-                            bezier: false,
-                        },
-                        LinePoint {
-                            p: Point {
-                                x: Pt(585.0),
-                                y: Pt(190.0),
-                            },
-                            bezier: false,
-                        },
-                        LinePoint {
-                            p: Point {
-                                x: Pt(padding_right),
-                                y: Pt(190.0),
-                            },
-                            bezier: false,
-                        },
-                        LinePoint {
-                            p: Point {
-                                x: Pt(padding_right),
-                                y: Pt(812.0),
-                            },
-                            bezier: false,
-                        },
-                    ],
-                }],
+                rings: vec![PolygonRing { points: top_rec.clone() }],
                 mode: Fill,
                 winding_order: WindingOrder::NonZero,
+            },
+        },
+        // Affects all DrawLines from here onwards
+        Op::SetOutlineThickness { pt: Pt(0.5) },
+        // A4 Portrait in Points is 595.0 wide (x) and 842.0 high (y)
+        // A rectangle
+        Op::DrawLine {
+            line: Line {
+                points: top_rec,
+                is_closed: false,
             },
         },
         // Save the graphics state to allow for position resets later
@@ -163,6 +212,8 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
             font: PdfFontHandle::Builtin(BuiltinFont::Helvetica),
             size: Pt(font_height),
         },
+        // TODO: Add our items from sale
+
         // A4 Portrait in Points is 595.0 wide (x) and 842.0 high (y)
         // Draw the rectangle with our background colour
         Op::SetFillColor {
@@ -175,47 +226,17 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         },
         Op::DrawPolygon {
             polygon: Polygon {
-                rings: vec![PolygonRing {
-                    points: vec![
-                        LinePoint {
-                            p: Point {
-                                x: Pt(padding_right),
-                                y: Pt(170.0),
-                            },
-                            bezier: false,
-                        },
-                        LinePoint {
-                            p: Point {
-                                x: Pt(585.0),
-                                y: Pt(170.0),
-                            },
-                            bezier: false,
-                        },
-                        LinePoint {
-                            p: Point {
-                                x: Pt(585.0),
-                                y: Pt(padding_right + 5.0),
-                            },
-                            bezier: false,
-                        },
-                        LinePoint {
-                            p: Point {
-                                x: Pt(padding_right),
-                                y: Pt(padding_right + 5.0),
-                            },
-                            bezier: false,
-                        },
-                        LinePoint {
-                            p: Point {
-                                x: Pt(padding_right),
-                                y: Pt(170.0),
-                            },
-                            bezier: false,
-                        },
-                    ],
-                }],
+                rings: vec![PolygonRing { points: bottom_rec.clone() }],
                 mode: Fill,
                 winding_order: WindingOrder::NonZero,
+            },
+        },
+        // A4 Portrait in Points is 595.0 wide (x) and 842.0 high (y)
+        // A rectangle
+        Op::DrawLine {
+            line: Line {
+                points: bottom_rec,
+                is_closed: false,
             },
         },
         // Set the text colour and write over the top of the rectangle
