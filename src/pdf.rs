@@ -94,7 +94,7 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
     ];
 
     let mut doc = PdfDocument::new("Iced Receipt");
-    let ops = vec![
+    let mut ops = vec![
         // A4 Portrait in Points is 595.0 wide (x) and 842.0 high (y)
         // Draw the rectangle with our background colour
         Op::SetFillColor {
@@ -107,7 +107,9 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         },
         Op::DrawPolygon {
             polygon: Polygon {
-                rings: vec![PolygonRing { points: top_rec.clone() }],
+                rings: vec![PolygonRing {
+                    points: top_rec.clone(),
+                }],
                 mode: Fill,
                 winding_order: WindingOrder::NonZero,
             },
@@ -212,8 +214,7 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
             font: PdfFontHandle::Builtin(BuiltinFont::Helvetica),
             size: Pt(font_height),
         },
-        // TODO: Add our items from sale
-
+        Op::EndTextSection,
         // A4 Portrait in Points is 595.0 wide (x) and 842.0 high (y)
         // Draw the rectangle with our background colour
         Op::SetFillColor {
@@ -226,7 +227,9 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         },
         Op::DrawPolygon {
             polygon: Polygon {
-                rings: vec![PolygonRing { points: bottom_rec.clone() }],
+                rings: vec![PolygonRing {
+                    points: bottom_rec.clone(),
+                }],
                 mode: Fill,
                 winding_order: WindingOrder::NonZero,
             },
@@ -269,6 +272,38 @@ pub fn print_pdf(sale: &Sale, output_path: &Path) -> Result<()> {
         Op::EndTextSection,
         Op::RestoreGraphicsState,
     ];
+
+    // Receipt items
+    // TODO: Sort position and text showing up
+    for item in sale.items.iter() {
+        ops.push(Op::ShowText {
+            items: vec![TextItem::Text(String::from(&item.name))],
+        });
+        ops.push(Op::AddLineBreak);
+        ops.push(Op::ShowText {
+            items: vec![TextItem::Text(String::from(
+                item.quantity().to_string(),
+            ))],
+        });
+        ops.push(Op::ShowText {
+            items: vec![TextItem::Text(String::from(format!(
+                "${:.2}",
+                item.price()
+            )))],
+        });
+        ops.push(Op::ShowText {
+            items: vec![TextItem::Text(String::from(format!(
+                "{}",
+                item.tax_group
+            )))],
+        });
+        ops.push(Op::ShowText {
+            items: vec![TextItem::Text(String::from(format!(
+                "${:.2}",
+                item.price() * item.quantity()
+            )))],
+        });
+    }
 
     let page = PdfPage::new(Mm(PAGE_W), Mm(PAGE_H), ops);
     doc.with_pages(vec![page]);
